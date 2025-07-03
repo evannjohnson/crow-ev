@@ -33,5 +33,17 @@ RUN wget --quiet https://www.lua.org/ftp/lua-5.3.4.tar.gz -O lua.tar.gz && \
     cd .. && \
     rm lua.tar.gz
 
+# Install GNU sed from source. This is required to fix the bug in existing version with temporary files creation for sed inplace commands with some mount types on macOS
+# Ref: https://savannah.gnu.org/forum/forum.php?forum_id=9647
+RUN apt-get update && apt-get install -y curl \
+        && curl -L https://ftp.gnu.org/gnu/sed/sed-4.8.tar.gz -o sed-4.8.tar.gz \
+        && tar -xzf sed-4.8.tar.gz \
+        && cd sed-4.8 \
+        && ./configure \
+        && make \
+        && make install \
+        && cd .. \
+        && rm -rf sed-4.8.tar.gz sed-4.8
+
 WORKDIR /target
 ENTRYPOINT ["make", "-j", "R=1", "zip"]
