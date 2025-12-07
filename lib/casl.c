@@ -273,6 +273,7 @@ static void capture_elem( Casl* self, Elem* e, lua_State* L, int ix )
                 case '-': allocating_capture(self, e, L, ElemT_Sub, 2); break;
                 case '*': allocating_capture(self, e, L, ElemT_Mul, 2); break;
                 case '/': allocating_capture(self, e, L, ElemT_Div, 2); break;
+                case '^': allocating_capture(self, e, L, ElemT_Pow, 2); break;
                 case '%': allocating_capture(self, e, L, ElemT_Mod, 2); break;
                 case '#': allocating_capture(self, e, L, ElemT_Mutate, 1); break;
 
@@ -439,6 +440,7 @@ static ElemO _resolve( Casl* self, Elem* e )
         case ElemT_Sub: return (ElemO){RESOLVE_VAR(self,e,0) - RESOLVE_VAR(self,e,1)};
         case ElemT_Mul: return (ElemO){RESOLVE_VAR(self,e,0) * RESOLVE_VAR(self,e,1)};
         case ElemT_Div: return (ElemO){RESOLVE_VAR(self,e,0) / RESOLVE_VAR(self,e,1)};
+        case ElemT_Pow: return (ElemO){pow(RESOLVE_VAR(self,e,0), RESOLVE_VAR(self,e,1))};
         case ElemT_Mod:{
             // this is just fmodf(val, wrap), but we need to handle negative numerators
             // FIXME negative values shoud wrap to 'wrap' value

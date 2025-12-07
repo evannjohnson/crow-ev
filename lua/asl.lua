@@ -127,6 +127,7 @@ local Mathmt = {
     __sub = function(a,b) return Asl.math{'-', a, b} end,
     __mul = function(a,b) return Asl.math{'*', a, b} end,
     __div = function(a,b) return Asl.math{'/', a, b} end,
+    __pow = function(a,b) return Asl.math{'^', a, b} end,
     __mod = function(a,b) return Asl.math{'%', a, b} end, -- % is used to wrap to a range
     __len = function(a)   return Asl.math{'#', a} end, -- freeze operator for mutables
     __index = function(t, ix)

@@ -43,6 +43,7 @@ typedef enum{ ElemT_Float
             , ElemT_Sub
             , ElemT_Mul
             , ElemT_Div
+            , ElemT_Pow
             , ElemT_Mod
             , ElemT_Mutate
 } ElemT;
