@@ -5,6 +5,7 @@ local clock = { threads = {}
               , transport = {}
               , id = 0
               }
+clock.handlers = clock.transport -- piggyback on existing handler table to save space
 
 --- create a coroutine to run but do not immediately run it;
 -- @tparam function f
@@ -105,6 +106,7 @@ clock.stop = clock_internal_stop
 clock_resume_handler = clock.resume
 function clock_start_handler() if clock.transport.start then clock.transport.start() end end
 function clock_stop_handler()  if clock.transport.stop then clock.transport.stop() end end
+function tempo_change_handler(tempo)  if clock.handlers.tempo_change then clock.handlers.tempo_change(tempo) end end
 
 clock.__newindex = function(self, ix, val)
     if ix == 'tempo' then clock_internal_set_tempo(val) end

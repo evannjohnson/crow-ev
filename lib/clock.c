@@ -8,6 +8,7 @@
 #include <stm32f7xx_hal.h> // HAL_GetTick
 #include "clock_ll.h" // linked list for clocks
 
+#include "caw.h" // Caw_printf
 
 ///////////////////////////////
 // private types
@@ -123,10 +124,16 @@ bool clock_schedule_resume_beatsync( int coro_id, float beats ){
 
 void clock_update_reference(double beats, double beat_duration)
 {
+    float prev_beat_duration = reference.beat_duration;
     reference.beat_duration         = beat_duration;
     reference.beat_duration_inverse = (double)1.0 / (double)beat_duration; // for optimized precision_beat_of_now (called every ms)
     reference.last_beat_time        = clock_get_time_seconds(); // seconds since system boot
     reference.beat                  = beats;
+
+    // external clock can easily result in fluctuations below this threshold
+    if(fabsf((float)beat_duration - prev_beat_duration) >= 0.00001){
+        L_queue_tempo_change(60.0 * (float)reference.beat_duration_inverse);
+    }
 }
 
 void clock_update_reference_from(double beats, double beat_duration, clock_source_t source)

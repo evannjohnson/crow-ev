@@ -64,6 +64,7 @@ void L_handle_peak( event_t* e );
 void L_handle_clock_resume( event_t* e );
 void L_handle_clock_start( event_t* e );
 void L_handle_clock_stop( event_t* e );
+void L_handle_tempo_change( event_t* e );
 void L_handle_freq( event_t* e );
 
 void _printf(char* error_message)
@@ -1260,6 +1261,22 @@ void L_handle_clock_stop( event_t* e )
 {
     lua_getglobal(L, "clock_stop_handler");
     if( Lua_call_usercode(L, 0, 0) != LUA_OK ){
+        lua_pop( L, 1 );
+    }
+}
+
+void L_queue_tempo_change( float tempo )
+{
+    event_t e = { .handler = L_handle_tempo_change
+                , .data.f = tempo
+                };
+    event_post(&e);
+}
+void L_handle_tempo_change( event_t* e )
+{
+    lua_getglobal(L, "tempo_change_handler");
+    lua_pushnumber(L, e->data.f);
+    if( Lua_call_usercode(L, 1, 0) != LUA_OK ){
         lua_pop( L, 1 );
     }
 }
