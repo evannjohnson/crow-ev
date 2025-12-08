@@ -96,6 +96,8 @@ end
 clock.get_beats = clock_get_time_beats
 clock.get_beat_sec = function(x) return (x or 1) * 60.0 / clock.tempo end
 
+clock.time_since_last_input = clock_get_crow_last_time
+
 clock.start = function(beat) return clock_internal_start(beat or 0) end
 clock.stop = clock_internal_stop
 

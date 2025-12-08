@@ -329,3 +329,11 @@ void clock_crow_in_div( float div )
 {
     crow_in_div = 1.0/div;
 }
+
+double clock_get_crow_last_time(void)
+{
+    if( clock_crow_last_time_set == false ){
+        return -1.0; // No clock received yet
+    }
+    return clock_get_time_seconds() - clock_crow_last_time;
+}
