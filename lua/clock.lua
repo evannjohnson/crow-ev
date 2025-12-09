@@ -61,7 +61,7 @@ clock.resume = function(coro_id, ...)
     return
   end
 
-  local result, mode, time = coroutine.resume(coro, ...)
+  local result, mode, time, offset = coroutine.resume(coro, ...)
 
   if coroutine.status(coro) == 'dead' then
     if result then
@@ -74,7 +74,7 @@ clock.resume = function(coro_id, ...)
       if mode == 0 then -- SLEEP
         clock_schedule_sleep(coro_id, time)
       elseif mode == 1 then -- SYNC
-        clock_schedule_sync(coro_id, time)
+        clock_schedule_sync(coro_id, time, offset)
       elseif mode == 2 then -- BEATSYNC
         clock_schedule_beat(coro_id, time)
       end

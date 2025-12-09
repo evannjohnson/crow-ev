@@ -705,11 +705,12 @@ static int _clock_schedule_sync( lua_State* L )
 {
     int coro_id = (int)luaL_checkinteger(L, 1);
     float beats = luaL_checknumber(L, 2);
+    float offset = luaL_optnumber(L, 3, 0);
 
     if (beats <= 0) {
         L_queue_clock_resume(coro_id); // immediate callback
     } else {
-        clock_schedule_resume_sync(coro_id, beats);
+        clock_schedule_resume_sync(coro_id, beats, offset);
     }
     lua_pop(L, 2);
     return 0;

@@ -100,13 +100,14 @@ bool clock_schedule_resume_sleep( int coro_id, float seconds )
     return ll_insert_event(&sleep_head, coro_id, wakeup);
 }
 
-bool clock_schedule_resume_sync( int coro_id, float beats ){
+bool clock_schedule_resume_sync( int coro_id, float beats, float offset ){
     double dbeats = beats;
 
     // modulo sync time against base beat
     double awaken = floor(reference.beat / dbeats);
     awaken *= dbeats;
     awaken += dbeats;
+    awaken += (double)offset;
 
     // check we haven't already passed it in the sub-beat & add another step if we have
     // we have to loop because fractional beats values may occur >2 times within a beat
