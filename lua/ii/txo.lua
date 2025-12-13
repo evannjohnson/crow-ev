@@ -105,7 +105,7 @@ do return
     }
   , { name = 'tr_m_sync'
     , cmd  = 0x0D
-    , docs = 'Synchronizes the metronome on the device #'
+    , docs = 'Synchronizes the metronome on the TR output'
     , args = { { 'port', u8 }
              , { 'state', s16 }
              }
@@ -138,6 +138,14 @@ do return
              , { 'state', s16 }
              }
     }
+  , { name = 'm_sync'
+    , cmd  = 0x1D
+    , docs = 'Synchronizes the metronome on the device #'
+    , args = { { 'port', u8 }
+             , { 'state', s16 }
+             }
+    }
+
 
 -- TXo Control Voltage (CV) Basic Commands
 
