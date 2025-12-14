@@ -9,9 +9,9 @@
 
 #include "slopes.h" // S_toward
 
-#define TO_COUNT   16   // 28bytes
+#define TO_COUNT   32   // 28bytes
 #define SEQ_COUNT  8    // 16bytes
-#define SEQ_LENGTH 8    // 4bytes
+#define SEQ_LENGTH 16    // 4bytes
 #define DYN_COUNT  40   // 8bytes
 
 typedef enum{ ToLiteral
