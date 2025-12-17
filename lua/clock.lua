@@ -5,6 +5,7 @@ local clock = { threads = {}
               , transport = {}
               , id = 0
               }
+clock.handlers = clock.transport -- piggyback on existing handler table to save space
 
 --- create a coroutine to run but do not immediately run it;
 -- @tparam function f
@@ -60,7 +61,7 @@ clock.resume = function(coro_id, ...)
     return
   end
 
-  local result, mode, time = coroutine.resume(coro, ...)
+  local result, mode, time, offset = coroutine.resume(coro, ...)
 
   if coroutine.status(coro) == 'dead' then
     if result then
@@ -73,7 +74,7 @@ clock.resume = function(coro_id, ...)
       if mode == 0 then -- SLEEP
         clock_schedule_sleep(coro_id, time)
       elseif mode == 1 then -- SYNC
-        clock_schedule_sync(coro_id, time)
+        clock_schedule_sync(coro_id, time, offset)
       elseif mode == 2 then -- BEATSYNC
         clock_schedule_beat(coro_id, time)
       end
@@ -95,6 +96,8 @@ end
 clock.get_beats = clock_get_time_beats
 clock.get_beat_sec = function(x) return (x or 1) * 60.0 / clock.tempo end
 
+clock.time_since_last_input = clock_get_crow_last_time
+
 clock.start = function(beat) return clock_internal_start(beat or 0) end
 clock.stop = clock_internal_stop
 
@@ -103,6 +106,7 @@ clock.stop = clock_internal_stop
 clock_resume_handler = clock.resume
 function clock_start_handler() if clock.transport.start then clock.transport.start() end end
 function clock_stop_handler()  if clock.transport.stop then clock.transport.stop() end end
+function tempo_change_handler(tempo)  if clock.handlers.tempo_change then clock.handlers.tempo_change(tempo) end end
 
 clock.__newindex = function(self, ix, val)
     if ix == 'tempo' then clock_internal_set_tempo(val) end
