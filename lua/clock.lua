@@ -91,6 +91,7 @@ clock.cleanup = function()
   clock.tempo = 120
   clock.transport.start = nil
   clock.transport.stop = nil
+  clock.handlers.tempo_change = nil
 end
 
 clock.get_beats = clock_get_time_beats
