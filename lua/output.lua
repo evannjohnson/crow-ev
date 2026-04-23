@@ -4,6 +4,7 @@ Output.outputs = {1,2,3,4}
 
 function Output.new( chan )
     local o = { channel = chan
+              , _mode   = 'asl'
               , level   = 5.0
               , rate    = 1/chan
               , shape   = 'linear'
@@ -42,6 +43,22 @@ function Output.clock(self, div)
         end)
 end
 
+function Output:set_mode(mode)
+    if mode == self._mode then
+        return
+    end
+
+    -- changing mode, cancel clocks
+    if self.ckcoro then clock.cancel(self.ckcoro) end
+
+    if mode == 'asl' then
+        self._mode = 'asl'
+        set_output_asl(self.channel)
+    else
+        print('error: unknown output mode "'..mode..'"')
+    end
+end
+
 --- METAMETHODS
 -- setters
 Output.__newindex = function(self, ix, val)
@@ -55,8 +72,17 @@ Output.__newindex = function(self, ix, val)
         self.asl:action()
     elseif ix == 'scale' then
         set_output_scale(self.channel, self.ji and just12(val) or val)
+    elseif ix == 'mode' then
+        Output.set_mode(self, val)
     else
-        return rawset(self,ix,val) -- allows 'receive' handler to be written
+        local mode_t = self[self._mode]
+
+        -- if the mode has a getter for this value, assume it has a setter as well
+        if mode_t[ix] then
+            mode_t[ix] = val
+        else
+            return rawset(self,ix,val) -- allows 'receive' handler to be written
+        end
     end
 end
 
@@ -81,14 +107,21 @@ Output.__index = function(self, ix)
         return function() soutput_handler(self.channel,LL_get_state(self.channel)) end
     elseif ix == 'reset_events' then
         return function() Output.reset_events(self) end
+    elseif ix == 'mode' then
+        return self._mode
+    else
+        -- index into the current mode's table
+        return self[self._mode][ix]
     end
 end
 
 Output.__call = function(self, arg)
-    if type(arg) == 'table' then -- being passed a literal asl to interpret & begin
-        self.asl:describe(arg)
-        self.asl:action()
-    else self.asl:action(arg) end -- args are forwarded as an action
+    if self._mode == 'asl' then
+        if type(arg) == 'table' then -- being passed a literal asl to interpret & begin
+            self.asl:describe(arg)
+            self.asl:action()
+        else self.asl:action(arg) end -- args are forwarded as an action
+    end
 end
 
 

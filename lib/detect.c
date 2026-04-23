@@ -4,9 +4,9 @@
 #include <math.h>
 #include <stdio.h>
 
-uint8_t channel_count = 0;
+static uint8_t channel_count = 0;
 
-Detect_t*  selves = NULL;
+static Detect_t*  selves = NULL;
 
 // helpers
 static void scale_bounds( Detect_t* self, int ix, int oct );

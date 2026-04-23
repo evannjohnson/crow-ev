@@ -25,6 +25,7 @@
 #include "../ll/system.h"   // getUID_Word()
 #include "../ll/i2c.h"      // I2C_SetTimings(u8)
 #include "lib/events.h"     // event_t event_post()
+#include "output.h"
 #include "stm32f7xx_hal.h"  // HAL_GetTick()
 #include "stm32f7xx_it.h"   // CPU_GetCount()
 
@@ -108,6 +109,8 @@ lua_State* Lua_Reset( void )
         Detect_none( Detect_ix_to_p(i) );
     }
     for( int i=0; i<4; i++ ){
+        // outputs default to ASL mode
+        Output_asl( Output_ix_to_p(i) );
         S_toward( i, 0.0, 0.0, SHAPE_Linear, NULL );
     }
     events_clear();
@@ -439,6 +442,26 @@ static int _set_input_clock( lua_State *L )
                      );
     }
     lua_pop( L, 4 );
+    lua_settop(L, 0);
+    return 0;
+}
+static int _get_output_mode( lua_State *L )
+{
+    uint8_t ix = luaL_checkinteger(L, 1)-1;
+    const char* mode = Output_mode_name(ix);
+
+    lua_pop(L, 1);
+    lua_pushstring(L, mode);
+    return 1;
+}
+static int _set_output_asl( lua_State *L )
+{
+    uint8_t ix = luaL_checkinteger(L, 1)-1;
+    Output_t* o = Output_ix_to_p( ix ); // Lua is 1-based
+    if(o){ // valid index
+        Output_asl( o );
+    }
+    lua_pop( L, 1 );
     lua_settop(L, 0);
     return 0;
 }
@@ -826,18 +849,20 @@ static const struct luaL_Reg libCrow[]=
     , { "i2c_fastmode"     , _i2c_set_timings  }
     //, { "sys_cpu_load"     , _sys_cpu          }
         // io
-    , { "get_state"        , _get_state        }
-    , { "set_output_scale" , _set_scale        }
-    , { "io_get_input"     , _io_get_input     }
-    , { "set_input_none"   , _set_input_none   }
-    , { "set_input_stream" , _set_input_stream }
-    , { "set_input_change" , _set_input_change }
-    , { "set_input_scale"  , _set_input_scale  }
-    , { "set_input_window" , _set_input_window }
-    , { "set_input_volume" , _set_input_volume }
-    , { "set_input_peak"   , _set_input_peak   }
-    , { "set_input_freq"   , _set_input_freq   }
-    , { "set_input_clock"  , _set_input_clock  }
+    , { "get_state"          , _get_state          }
+    , { "set_output_scale"   , _set_scale          }
+    , { "io_get_input"       , _io_get_input       }
+    , { "set_input_none"     , _set_input_none     }
+    , { "set_input_stream"   , _set_input_stream   }
+    , { "set_input_change"   , _set_input_change   }
+    , { "set_input_scale"    , _set_input_scale    }
+    , { "set_input_window"   , _set_input_window   }
+    , { "set_input_volume"   , _set_input_volume   }
+    , { "set_input_peak"     , _set_input_peak     }
+    , { "set_input_freq"     , _set_input_freq     }
+    , { "set_input_clock"    , _set_input_clock    }
+    , { "get_output_mode"    , _get_output_mode    }
+    , { "set_output_asl"     , _set_output_asl     }
         // casl
     , { "casl_describe"    , _casl_describe    }
     , { "casl_action"      , _casl_action      }
