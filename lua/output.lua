@@ -13,6 +13,7 @@ function Output.new( chan )
               , ji      = false -- mark if .scale is in just intonation mode
               , asl     = asl.new( chan )
               , done    = function() end -- customizable event called on asl completion
+              , spinner = spinner.new( chan )
               , clock_div = 1
               , ckcoro  = false -- clock coroutine
               }
@@ -54,6 +55,9 @@ function Output:set_mode(mode)
     if mode == 'asl' then
         self._mode = 'asl'
         set_output_asl(self.channel)
+    elseif mode == 'spinner' then
+        self._mode = 'spinner'
+        set_output_spinner(self.channel)
     else
         print('error: unknown output mode "'..mode..'"')
     end

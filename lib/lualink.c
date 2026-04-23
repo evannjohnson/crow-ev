@@ -26,6 +26,7 @@
 #include "../ll/i2c.h"      // I2C_SetTimings(u8)
 #include "lib/events.h"     // event_t event_post()
 #include "output.h"
+#include "spinner.h"
 #include "stm32f7xx_hal.h"  // HAL_GetTick()
 #include "stm32f7xx_it.h"   // CPU_GetCount()
 
@@ -465,6 +466,17 @@ static int _set_output_asl( lua_State *L )
     lua_settop(L, 0);
     return 0;
 }
+static int _set_output_spinner( lua_State *L )
+{
+    uint8_t ix = luaL_checkinteger(L, 1)-1;
+    Output_t* o = Output_ix_to_p( ix ); // Lua is 1-based
+    if(o){ // valid index
+        Output_spinner( o );
+    }
+    lua_pop( L, 1 );
+    lua_settop(L, 0);
+    return 0;
+}
 
 // CASL
 static int _casl_describe( lua_State *L )
@@ -514,6 +526,106 @@ static int _casl_getdynamic( lua_State *L )
     lua_pop(L, 2);
     lua_pushnumber(L, d);
     return 1;
+}
+
+// SPINNER
+static int _Spinner_get_bottom( lua_State *L )
+{
+    float v = Spinner_get_bottom(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushnumber(L, v);
+    return 1;
+}
+static int _Spinner_get_top( lua_State *L )
+{
+    float v = Spinner_get_top(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushnumber(L, v);
+    return 1;
+}
+static int _Spinner_get_time( lua_State *L )
+{
+    float v = Spinner_get_time(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushnumber(L, v);
+    return 1;
+}
+static int _Spinner_get_direction( lua_State *L )
+{
+    int d = Spinner_get_direction(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushnumber(L, d);
+    return 1;
+}
+static int _Spinner_get_pos( lua_State *L )
+{
+    float v = Spinner_get_pos(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushnumber(L, v);
+    return 1;
+}
+static int _Spinner_get_phase_offset( lua_State *L )
+{
+    float v = Spinner_get_phase_offset(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushnumber(L, v);
+    return 1;
+}
+static int _Spinner_set_bottom( lua_State *L )
+{
+    Spinner_set_bottom(luaL_checkinteger(L, 1)-1,
+                                 luaL_checknumber(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_set_top( lua_State *L )
+{
+    Spinner_set_top(luaL_checkinteger(L, 1)-1,
+                              luaL_checknumber(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_set_time( lua_State *L )
+{
+    Spinner_set_time(luaL_checkinteger(L, 1)-1,
+                               luaL_checknumber(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_set_direction( lua_State *L )
+{
+    Spinner_set_direction(luaL_checkinteger(L, 1)-1,
+                                  luaL_checkinteger(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_set_pos( lua_State *L )
+{
+    Spinner_set_pos(luaL_checkinteger(L, 1)-1,
+                              luaL_checknumber(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_set_phase_offset( lua_State *L )
+{
+    Spinner_set_phase_offset(luaL_checkinteger(L, 1)-1,
+                                       luaL_checknumber(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_delta_pos( lua_State *L )
+{
+    Spinner_delta_pos(luaL_checkinteger(L, 1)-1,
+                                       luaL_checknumber(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_delta_phase_offset( lua_State *L )
+{
+    Spinner_delta_phase_offset(luaL_checkinteger(L, 1)-1,
+                                       luaL_checknumber(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
 }
 
 static int _send_usb( lua_State *L )
@@ -863,6 +975,7 @@ static const struct luaL_Reg libCrow[]=
     , { "set_input_clock"    , _set_input_clock    }
     , { "get_output_mode"    , _get_output_mode    }
     , { "set_output_asl"     , _set_output_asl     }
+    , { "set_output_spinner" , _set_output_spinner }
         // casl
     , { "casl_describe"    , _casl_describe    }
     , { "casl_action"      , _casl_action      }
@@ -870,6 +983,21 @@ static const struct luaL_Reg libCrow[]=
     , { "casl_cleardynamics", _casl_cleardynamics }
     , { "casl_setdynamic"  , _casl_setdynamic  }
     , { "casl_getdynamic"  , _casl_getdynamic  }
+        // spinner
+    , { "spinner_get_bottom"         , _Spinner_get_bottom         }
+    , { "spinner_get_top"            , _Spinner_get_top            }
+    , { "spinner_get_time"           , _Spinner_get_time           }
+    , { "spinner_get_direction"      , _Spinner_get_direction      }
+    , { "spinner_get_pos"            , _Spinner_get_pos            }
+    , { "spinner_get_phase_offset"   , _Spinner_get_phase_offset   }
+    , { "spinner_set_bottom"         , _Spinner_set_bottom         }
+    , { "spinner_set_top"            , _Spinner_set_top            }
+    , { "spinner_set_time"           , _Spinner_set_time           }
+    , { "spinner_set_direction"      , _Spinner_set_direction      }
+    , { "spinner_set_pos"            , _Spinner_set_pos            }
+    , { "spinner_set_phase_offset"   , _Spinner_set_phase_offset   }
+    , { "spinner_delta_pos"          , _Spinner_delta_pos          }
+    , { "spinner_delta_phase_offset" , _Spinner_delta_phase_offset }
         // usb
     , { "send_usb"         , _send_usb         }
         // i2c

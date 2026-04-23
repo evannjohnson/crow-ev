@@ -5,6 +5,7 @@
 
 #include "../ll/adda.h"        // _Init(), _Start(), _GetADCValue(), IO_block_t
 #include "slopes.h"            // S_init(), S_step_v()
+#include "spinner.h"
 #include "output.h"
 #include "ashapes.h"           // AShaper_init(), AShaper_v()
 #include "detect.h"            // Detect_init(), Detect(), Detect_ix_to_p()
