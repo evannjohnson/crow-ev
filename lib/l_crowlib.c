@@ -224,6 +224,9 @@ int l_crowlib_crow_reset( lua_State* L ){
 		lua_pushinteger(L, i); // @2
 		lua_gettable(L, 1); // replace @2 with: output[n]
 
+        // output[n].mode = "asl"
+        lua_pushstring(L, "asl"); // @3
+        lua_setfield(L, 2, "mode"); // pops 'mode' -> @2
         // output[n].slew = 0
         lua_pushnumber(L, 0.0); // @3
         lua_setfield(L, 2, "slew"); // pops 'slew' -> @2
