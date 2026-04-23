@@ -546,3 +546,9 @@ Then on teletype:
 `CROW.CALL2 1 2`  adds an octave to output 2
 `CROW.CALL2 2 1`  add a fith to output 1
 `CROW.CALL2 3 4`  move output 4 by a random number of semitones
+
+# fork notes
+development notes relevant to my fork
+
+## adding new output modes
+In the vanilla firmware, there is no concept of an output "mode". All interaction with the outputs is through ASL, which, under the hood, uses the slopes engine. See the commit msg of `80ff428` for instructions details on adding a new mode, and the commit that added this text for the implementation of the spinner mode

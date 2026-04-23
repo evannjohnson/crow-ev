@@ -49,6 +49,7 @@ void l_crowlib_init(lua_State* L){
 	_load_lib(L, "output", "Output");
 	_load_lib(L, "asl", "asl");
 	_load_lib(L, "asllib", "asllib");
+	_load_lib(L, "spinner", "spinner");
 	_load_lib(L, "metro", "metro");
 
     // load C funcs into lua env first

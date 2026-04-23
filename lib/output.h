@@ -14,3 +14,4 @@ const char* Output_mode_name( uint8_t index );
 float* Output_step_v( int index, float* out, int size );
 
 void Output_asl( Output_t* self );
+void Output_spinner( Output_t* self );

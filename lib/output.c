@@ -1,5 +1,6 @@
 #include "output.h"
 #include "slopes.h"
+#include "spinner.h"
 #include "casl.h"
 
 #include <stdlib.h>
@@ -18,6 +19,7 @@ void Output_init( int channels )
         casl_init(i);
     }
     S_init( SLOPE_CHANNELS );
+    Spinner_init( SPINNER_CHANNELS );
 
     channel_count = channels;
     selves = malloc( sizeof ( Output_t ) * channels );
@@ -48,6 +50,8 @@ const char* Output_mode_name( uint8_t index )
     // use the modefn to determine the mode
     if ( o->modefn == S_step_v ) {
         return "asl";
+    } else if ( o->modefn == Spinner_step_v  ) {
+        return "spinner";
     } else {
         return "unknown";
     }
@@ -58,6 +62,11 @@ const char* Output_mode_name( uint8_t index )
 void Output_asl( Output_t* self )
 {
     self->modefn = S_step_v; 
+}
+
+void Output_spinner( Output_t* self )
+{
+    self->modefn = Spinner_step_v; 
 }
 
 //////////////////////////////////////////////
