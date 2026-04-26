@@ -82,7 +82,8 @@ Output.__newindex = function(self, ix, val)
         local mode_t = self[self._mode]
 
         -- if the mode has a getter for this value, assume it has a setter as well
-        if mode_t[ix] then
+        -- or if it has explicitly defined it, in case the getter can return false
+        if mode_t[ix] or (mode_t.getters and mode_t.getters[ix]) then
             mode_t[ix] = val
         else
             return rawset(self,ix,val) -- allows 'receive' handler to be written

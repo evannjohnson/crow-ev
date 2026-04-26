@@ -2,6 +2,9 @@ local Spinner = {}
 
 function Spinner.new(chan)
     local s = { chan = chan or 1 }
+    s.getters = {
+        clocked = true
+    }
     setmetatable(s, Spinner)
     return s
 end
@@ -32,6 +35,12 @@ Spinner.__index = function(self, ix)
         return spinner_get_pos(self.chan)
     elseif ix == "phase_offset" then
         return spinner_get_phase_offset(self.chan)
+    elseif ix == "clocked" then
+        return spinner_get_clocked(self.chan)
+    elseif ix == "clocked_keep_offset" then
+        return spinner_get_clocked_keep_offset(self.chan)
+    elseif ix == "spinner_clock_div" then
+        return spinner_get_clock_div(self.chan)
     end
 end
 
@@ -69,6 +78,15 @@ Spinner.__newindex = function(self, ix, val)
         spinner_set_pos(self.chan, val)
     elseif ix == "phase_offset" then
         spinner_set_phase_offset(self.chan, val)
+    elseif ix == "clocked" then
+        spinner_set_clocked(self.chan, val)
+    elseif ix == "clocked_keep_offset" then
+        spinner_set_clocked_keep_offset(self.chan, val)
+    elseif ix == "spinner_clock_div" then
+        if not (val > 0) then
+            print("error: clock_div must by > 0")
+        end
+        spinner_set_clock_div(self.chan, val)
     end
 end
 

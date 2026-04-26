@@ -571,6 +571,27 @@ static int _Spinner_get_phase_offset( lua_State *L )
     lua_pushnumber(L, v);
     return 1;
 }
+static int _Spinner_get_clocked( lua_State *L )
+{
+    bool b = Spinner_get_clocked(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushboolean(L, b);
+    return 1;
+}
+static int _Spinner_get_clocked_keep_offset( lua_State *L )
+{
+    bool b = Spinner_get_clocked_keep_offset(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushboolean(L, b);
+    return 1;
+}
+static int _Spinner_get_clock_div( lua_State *L )
+{
+    float v = Spinner_get_clock_div(luaL_checkinteger(L, 1)-1); // lua is 1-based 
+    lua_pop(L, 1);
+    lua_pushnumber(L, v);
+    return 1;
+}
 static int _Spinner_set_bottom( lua_State *L )
 {
     Spinner_set_bottom(luaL_checkinteger(L, 1)-1,
@@ -609,6 +630,39 @@ static int _Spinner_set_pos( lua_State *L )
 static int _Spinner_set_phase_offset( lua_State *L )
 {
     Spinner_set_phase_offset(luaL_checkinteger(L, 1)-1,
+                                       luaL_checknumber(L, 2)); // lua is 1-based 
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_set_clocked( lua_State *L )
+{
+    int ix = luaL_checkinteger(L, 1) - 1; // lua is 1-based
+    bool state;
+    if(lua_isboolean(L, 2)){
+        state = lua_toboolean(L, 2);
+    } else {
+        state = luaL_checkinteger(L, 2);
+    }
+    Spinner_set_clocked(ix, state);
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_set_clocked_keep_offset( lua_State *L )
+{
+    int ix = luaL_checkinteger(L, 1) - 1; // lua is 1-based
+    bool state;
+    if(lua_isboolean(L, 2)){
+        state = lua_toboolean(L, 2);
+    } else {
+        state = luaL_checkinteger(L, 2);
+    }
+    Spinner_set_clocked_keep_offset(ix, state);
+    lua_pop(L, 2);
+    return 0;
+}
+static int _Spinner_set_clock_div( lua_State *L )
+{
+    Spinner_set_clock_div(luaL_checkinteger(L, 1)-1,
                                        luaL_checknumber(L, 2)); // lua is 1-based 
     lua_pop(L, 2);
     return 0;
@@ -984,20 +1038,26 @@ static const struct luaL_Reg libCrow[]=
     , { "casl_setdynamic"  , _casl_setdynamic  }
     , { "casl_getdynamic"  , _casl_getdynamic  }
         // spinner
-    , { "spinner_get_bottom"         , _Spinner_get_bottom         }
-    , { "spinner_get_top"            , _Spinner_get_top            }
-    , { "spinner_get_time"           , _Spinner_get_time           }
-    , { "spinner_get_direction"      , _Spinner_get_direction      }
-    , { "spinner_get_pos"            , _Spinner_get_pos            }
-    , { "spinner_get_phase_offset"   , _Spinner_get_phase_offset   }
-    , { "spinner_set_bottom"         , _Spinner_set_bottom         }
-    , { "spinner_set_top"            , _Spinner_set_top            }
-    , { "spinner_set_time"           , _Spinner_set_time           }
-    , { "spinner_set_direction"      , _Spinner_set_direction      }
-    , { "spinner_set_pos"            , _Spinner_set_pos            }
-    , { "spinner_set_phase_offset"   , _Spinner_set_phase_offset   }
-    , { "spinner_delta_pos"          , _Spinner_delta_pos          }
-    , { "spinner_delta_phase_offset" , _Spinner_delta_phase_offset }
+    , { "spinner_get_bottom"         , _Spinner_get_bottom                  }
+    , { "spinner_get_top"            , _Spinner_get_top                     }
+    , { "spinner_get_time"           , _Spinner_get_time                    }
+    , { "spinner_get_direction"      , _Spinner_get_direction               }
+    , { "spinner_get_pos"            , _Spinner_get_pos                     }
+    , { "spinner_get_phase_offset"   , _Spinner_get_phase_offset            }
+    , { "spinner_get_clocked"        , _Spinner_get_clocked                 }
+    , { "spinner_get_clocked_keep_offset", _Spinner_get_clocked_keep_offset }
+    , { "spinner_get_clock_div"      , _Spinner_get_clock_div               }
+    , { "spinner_set_bottom"         , _Spinner_set_bottom                  }
+    , { "spinner_set_top"            , _Spinner_set_top                     }
+    , { "spinner_set_time"           , _Spinner_set_time                    }
+    , { "spinner_set_direction"      , _Spinner_set_direction               }
+    , { "spinner_set_pos"            , _Spinner_set_pos                     }
+    , { "spinner_set_phase_offset"   , _Spinner_set_phase_offset            }
+    , { "spinner_set_clocked"        , _Spinner_set_clocked                 }
+    , { "spinner_set_clocked_keep_offset", _Spinner_set_clocked_keep_offset }
+    , { "spinner_set_clock_div"      , _Spinner_set_clock_div               }
+    , { "spinner_delta_pos"          , _Spinner_delta_pos                   }
+    , { "spinner_delta_phase_offset" , _Spinner_delta_phase_offset          }
         // usb
     , { "send_usb"         , _send_usb         }
         // i2c
