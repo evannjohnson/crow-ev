@@ -8,6 +8,7 @@
 #include <stm32f7xx_hal.h> // HAL_GetTick
 #include "clock_ll.h" // linked list for clocks
 
+#include "caw.h" // Caw_printf
 
 ///////////////////////////////
 // private types
@@ -99,13 +100,14 @@ bool clock_schedule_resume_sleep( int coro_id, float seconds )
     return ll_insert_event(&sleep_head, coro_id, wakeup);
 }
 
-bool clock_schedule_resume_sync( int coro_id, float beats ){
+bool clock_schedule_resume_sync( int coro_id, float beats, float offset ){
     double dbeats = beats;
 
     // modulo sync time against base beat
     double awaken = floor(reference.beat / dbeats);
     awaken *= dbeats;
     awaken += dbeats;
+    awaken += (double)offset;
 
     // check we haven't already passed it in the sub-beat & add another step if we have
     // we have to loop because fractional beats values may occur >2 times within a beat
@@ -123,10 +125,16 @@ bool clock_schedule_resume_beatsync( int coro_id, float beats ){
 
 void clock_update_reference(double beats, double beat_duration)
 {
+    float prev_beat_duration = reference.beat_duration;
     reference.beat_duration         = beat_duration;
     reference.beat_duration_inverse = (double)1.0 / (double)beat_duration; // for optimized precision_beat_of_now (called every ms)
     reference.last_beat_time        = clock_get_time_seconds(); // seconds since system boot
     reference.beat                  = beats;
+
+    // external clock can easily result in fluctuations below this threshold
+    if(fabsf((float)beat_duration - prev_beat_duration) >= 0.00001){
+        L_queue_tempo_change(60.0 * (float)reference.beat_duration_inverse);
+    }
 }
 
 void clock_update_reference_from(double beats, double beat_duration, clock_source_t source)
@@ -320,4 +328,12 @@ void clock_crow_handle_clock(void)
 void clock_crow_in_div( float div )
 {
     crow_in_div = 1.0/div;
+}
+
+double clock_get_crow_last_time(void)
+{
+    if( clock_crow_last_time_set == false ){
+        return -1.0; // No clock received yet
+    }
+    return clock_get_time_seconds() - clock_crow_last_time;
 }

@@ -17,7 +17,7 @@ void clock_init( int max_clocks );
 void clock_update(uint32_t time_now);
 
 bool clock_schedule_resume_sleep( int coro_id, float seconds );
-bool clock_schedule_resume_sync( int coro_id, float beats );
+bool clock_schedule_resume_sync( int coro_id, float beats, float sync_beat_offset );
 bool clock_schedule_resume_beatsync( int coro_id, float beats );
 void clock_update_reference( double beats, double beat_duration );
 void clock_update_reference_from( double beats, double beat_duration, clock_source_t source);
@@ -50,3 +50,4 @@ void clock_crow_init(void);
 void clock_input_handler( int id, float freq ); // Called from Detect lib
 void clock_crow_handle_clock(void);
 void clock_crow_in_div( float div );
+double clock_get_crow_last_time(void);

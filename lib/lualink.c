@@ -64,6 +64,7 @@ void L_handle_peak( event_t* e );
 void L_handle_clock_resume( event_t* e );
 void L_handle_clock_start( event_t* e );
 void L_handle_clock_stop( event_t* e );
+void L_handle_tempo_change( event_t* e );
 void L_handle_freq( event_t* e );
 
 void _printf(char* error_message)
@@ -704,11 +705,12 @@ static int _clock_schedule_sync( lua_State* L )
 {
     int coro_id = (int)luaL_checkinteger(L, 1);
     float beats = luaL_checknumber(L, 2);
+    float offset = luaL_optnumber(L, 3, 0);
 
     if (beats <= 0) {
         L_queue_clock_resume(coro_id); // immediate callback
     } else {
-        clock_schedule_resume_sync(coro_id, beats);
+        clock_schedule_resume_sync(coro_id, beats, offset);
     }
     lua_pop(L, 2);
     return 0;
@@ -741,6 +743,11 @@ static int _clock_set_source( lua_State* L )
     clock_set_source( (int)luaL_checkinteger(L, 1)-1 ); // lua is 1-based
     lua_pop(L, 1);
     return 0;
+}
+static int _clock_get_crow_last_time( lua_State* L )
+{
+    lua_pushnumber(L, clock_get_crow_last_time());
+    return 1;
 }
 static int _clock_internal_set_tempo( lua_State* L )
 {
@@ -865,6 +872,7 @@ static const struct luaL_Reg libCrow[]=
     , { "clock_get_time_beats"     , _clock_get_time_beats     }
     , { "clock_get_tempo"          , _clock_get_tempo          }
     , { "clock_set_source"         , _clock_set_source         }
+    , { "clock_get_crow_last_time", _clock_get_crow_last_time }
         // clock.internal
     , { "clock_internal_set_tempo" , _clock_internal_set_tempo }
     , { "clock_internal_start"     , _clock_internal_start     }
@@ -1254,6 +1262,22 @@ void L_handle_clock_stop( event_t* e )
 {
     lua_getglobal(L, "clock_stop_handler");
     if( Lua_call_usercode(L, 0, 0) != LUA_OK ){
+        lua_pop( L, 1 );
+    }
+}
+
+void L_queue_tempo_change( float tempo )
+{
+    event_t e = { .handler = L_handle_tempo_change
+                , .data.f = tempo
+                };
+    event_post(&e);
+}
+void L_handle_tempo_change( event_t* e )
+{
+    lua_getglobal(L, "tempo_change_handler");
+    lua_pushnumber(L, e->data.f);
+    if( Lua_call_usercode(L, 1, 0) != LUA_OK ){
         lua_pop( L, 1 );
     }
 }
