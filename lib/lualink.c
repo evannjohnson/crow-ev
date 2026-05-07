@@ -109,11 +109,21 @@ lua_State* Lua_Reset( void )
     for( int i=0; i<2; i++ ){
         Detect_none( Detect_ix_to_p(i) );
     }
+
+    lua_getglobal(L, "output"); // @1: _G.output
     for( int i=0; i<4; i++ ){
         // outputs default to ASL mode
         Output_asl( Output_ix_to_p(i) );
         S_toward( i, 0.0, 0.0, SHAPE_Linear, NULL );
+
+        // set lua-side output[n]._mode to asl
+        lua_rawgeti(L, -1, i+1);      // @2: output[i+1]
+        lua_pushstring(L, "asl");     // @3
+        lua_setfield(L, -2, "_mode"); // pops 'asl' -> @2
+        lua_pop(L, 1);                // pop output[i+1]
     }
+    lua_pop(L, 1); // pop _G.output
+
     events_clear();
     clock_cancel_coro_all();
 
