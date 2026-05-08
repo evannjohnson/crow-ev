@@ -552,3 +552,44 @@ development notes relevant to my fork
 
 ## adding new output modes
 In the vanilla firmware, there is no concept of an output "mode". All interaction with the outputs is through ASL, which, under the hood, uses the slopes engine. See the commit msg of `80ff428` for instructions details on adding a new mode, and the commit that added this text for the implementation of the spinner mode
+
+A mode requires a `step_v`-style function to block process 32 samples for the DAC (as floats representing a voltage value). This function must have a unique name, as the name of the function is by `lib/output.c` to return the name of the mode when it is queried.
+Here is the outline of things that must be done to add a simple new mode (which we'll call "newmode"):
+- create `lib/newmode.h` (and correponding implementation in `lib/newmode.c`) that defines public functions, which should define:
+  - a block processing function with sig `float* Newmode_step_v(int index, float* out, int size)`
+  - a `typedef struct` named `Newmode_t` that contains the index of the output and necessary state
+  - a `void Newmode_init( int channels )` that allocs a `Newmode_t` for each output
+  - getters and setters for public state
+- make changes in `lib/output.c`:
+  - `#include "newmode.h"`
+  - in `Output_init`, call `Newmode_init`
+  - in `Output_mode_name`, add a check that returns `"newmode"` for `Newmode_step_v`
+  - in the section named "mode configuration", add `void Output_newmode( Output_t* self )` that sets `self->modefn = Newmode_step_v`
+    - public, also must be added to `lib/output.h`
+- in `lib/lualink.c`:
+  - `#include newmode.h`
+  - create `_set_output_newmode` (next to the others), that calls `Output_newmode` with the correct output index
+  - create functions that call the getters and setters of the new mode via index (ex. `_Newmode_get_someparam`)
+  - link the newly created funcs in the `libCrow` table
+- create `lua/newmode.lua`:
+  - should have a `Newmode:new(chan)` that returns a table that tracks the channel (output number)
+  - use `__index` to call the getters, and `__newindex` to call setters, set the metatable of the returned table to this
+- in `lua/output.lua`:
+    - in `Output.new`, add a field to the table `newmode = newmode.new(chan)`
+    - in `Output:set_mode`, add a case for the new mode
+- link the new stuff to the build system:
+  - `lib/l_bootstrap.c`
+    - `#include/build/newmode.h`
+    - see `Lua_libs[]`
+  - `lib/l_crowlib.c`
+    - see `l_crowlib_init`
+  - `lua/definitions.lua`
+  - `Makefile`: see `LUA_SRC`
+- link the new stuff to the build system:
+  - `lib/l_bootstrap.c`
+    - `#include/build/newmode.h`
+    - see `Lua_libs[]`
+  - `lib/l_crowlib.c`
+    - see `l_crowlib_init`
+  - `lua/definitions.lua`
+  - `Makefile`: see `LUA_SRC`
