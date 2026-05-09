@@ -35,6 +35,7 @@ typedef struct{
     uint8_t cmd;
     uint8_t args;
     ii_Type_t return_type;
+    uint8_t return_count;
     ii_Type_t argtype[];
 } ii_Cmd_t;
 
@@ -56,18 +57,20 @@ function make_commandlist(files)
     local function c_cmds(f)
         local c = ''
 
-        local function make_a_cmd( lua_name, ix, cmd, args, retval )
+        local function make_a_cmd( lua_name, ix, cmd, args, retval, return_count )
+            return_count = return_count or 1
+            local tail = retval .. ',' .. return_count
             local s = 'const ii_Cmd_t ' .. lua_name .. ix .. ' = {' .. cmd .. ','
             if args == nil then
-                s = s .. '0,' .. retval .. ',{}'
+                s = s .. '0,' .. tail .. ',{}'
             elseif type(args[1]) == 'table' then -- >1 arg
-                s = s .. #args .. ',' .. retval .. ',{'
+                s = s .. #args .. ',' .. tail .. ',{'
                 for i=1,#args-1 do
                     s = s .. args[i][2] .. ','
                 end
                 s = s .. args[#args][2] .. '}'
             elseif type(args[1]) == 'string' then -- 1 arg
-                s = s .. '1,' .. retval .. ',{' .. args[2] .. '}'
+                s = s .. '1,' .. tail .. ',{' .. args[2] .. '}'
             end
             return s .. '};\n'
         end
@@ -124,6 +127,7 @@ function make_commandlist(files)
                                    , v.cmd
                                    , v.args
                                    , v.retval[2]
+                                   , v.retval[3]
                                    )
                 i = i + 1
             end

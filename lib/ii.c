@@ -17,7 +17,7 @@
 #include "slopes.h"
 
 #define II_MAX_BROADCAST_LEN 9 // cmd byte + 4*s16 args
-#define II_MAX_RECEIVE_LEN 10
+#define II_MAX_RECEIVE_LEN 16
 #define II_QUEUE_LENGTH 16
 #define II_GET 128  // cmd >= are getter requests
 #define II_TT_VOLT  ((float)1638.3)
@@ -56,8 +56,10 @@ static uint8_t encode_packet( uint8_t* dest, const ii_Cmd_t* c, uint8_t cmd, flo
 
 queue_t* l_qix;
 queue_t* f_qix;
+queue_t* l_rx_qix;
 ii_q_t   l_iq[II_QUEUE_LENGTH];
 uint8_t  f_iq[II_QUEUE_LENGTH][II_MAX_RECEIVE_LEN];
+uint8_t  l_rx_iq[II_QUEUE_LENGTH][II_MAX_RECEIVE_LEN];
 uint8_t  rx_arg = 0; // FIXME is there a better solution?
 bool     rx_is_raw = false;
 
@@ -79,8 +81,9 @@ uint8_t ii_init( uint8_t address )
                 , &error_action
                 ) ){ printf("I2C Failed to Init\n"); }
 
-    l_qix = queue_init( II_QUEUE_LENGTH );
-    f_qix = queue_init( II_QUEUE_LENGTH );
+    l_qix    = queue_init( II_QUEUE_LENGTH );
+    f_qix    = queue_init( II_QUEUE_LENGTH );
+    l_rx_qix = queue_init( II_QUEUE_LENGTH );
     for( int i=0; i<II_QUEUE_LENGTH; i++ ){
         l_iq[i].length = 0; // mark as no-packet
     }
@@ -135,7 +138,7 @@ uint8_t ii_leader_enqueue( uint8_t address
 
     q->address = address;
     const ii_Cmd_t* c = ii_find_command(address, cmd);
-    q->query_length = type_size( c->return_type );
+    q->query_length = c->return_count * type_size( c->return_type );
     q->arg = data[0]; // save a copy of the first argument
     q->length = encode_packet( q->data
                              , c
@@ -227,20 +230,6 @@ uint8_t* ii_processFollowRx( void )
     return f_iq[ix];
 }
 
-// TODO localize queue
-volatile int lead_has_data = 0;
-uint8_t lead_data[I2C_MAX_CMD_BYTES];
-uint8_t* ii_processLeadRx( void )
-{
-    uint8_t* pRetval = NULL;
-    if( lead_has_data ){
-        pRetval = lead_data;
-        lead_has_data = 0;
-    }
-    return pRetval; // NULL for finished
-}
-
-
 ////////////////////////////////////////////
 // LL driver callbacks
 
@@ -248,15 +237,27 @@ static void lead_callback( uint8_t address, uint8_t command, uint8_t* rx_data )
 {
     if( !rx_is_raw ){ ii_unpickle( &address, &command, rx_data ); }
     ii_Type_t return_type = ii_s32T;
+    uint8_t   return_count = 1;
     const ii_Cmd_t* cmd = ii_find_command(address, command);
     if( cmd != NULL ){
-        return_type = cmd->return_type;
+        return_type  = cmd->return_type;
+        return_count = cmd->return_count;
     }
-    L_queue_ii_leadRx( address
-                     , command
-                     , decode( rx_data, return_type )
-                     , rx_arg
-                     );
+    if( return_count > 1 ){
+        int ix = queue_enqueue( l_rx_qix );
+        if( ix < 0 ){
+            printf("ii_lead_rx queue overflow\n");
+            return;
+        }
+        memcpy( l_rx_iq[ix], rx_data, II_MAX_RECEIVE_LEN );
+        L_queue_ii_leadRx_multi( address, command, rx_arg );
+    } else {
+        L_queue_ii_leadRx( address
+                         , command
+                         , decode( rx_data, return_type )
+                         , rx_arg
+                         );
+    }
 }
 
 static int _two_step_request = 0;
@@ -326,6 +327,22 @@ void ii_process_dequeue_decode( void )
                              , c->args
                              , decode_packet( args, pdata, c, 1 )
                              );
+}
+
+// dequeue raw bytes from the lead-rx side channel, decode N values, hand to lua
+void ii_process_lead_rx_multi( uint8_t address, uint8_t cmd, uint8_t arg )
+{
+    int ix = queue_dequeue( l_rx_qix );
+    if( ix < 0 ){ return; }
+    const ii_Cmd_t* c = ii_find_command( address, cmd );
+    if( c == NULL ){ return; }
+    int count = c->return_count;
+    int sz    = type_size( c->return_type );
+    float decoded[count];
+    for( int i=0; i<count; i++ ){
+        decoded[i] = decode( &l_rx_iq[ix][i * sz], c->return_type );
+    }
+    L_handle_ii_leadRx_multi_cont( address, cmd, arg, count, decoded );
 }
 
 static void error_action( int error_code )

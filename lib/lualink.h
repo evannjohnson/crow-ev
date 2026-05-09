@@ -33,6 +33,7 @@ extern void L_queue_peak( int id, float ignore );
 extern void L_queue_freq( int id, float freq );
 extern void L_queue_in_scale( int id, float note );
 extern void L_queue_ii_leadRx( uint8_t address, uint8_t cmd, float data, uint8_t arg );
+extern void L_queue_ii_leadRx_multi( uint8_t address, uint8_t cmd, uint8_t arg );
 extern void L_queue_ii_followRx( void );
 extern void L_queue_clock_resume( int coro_id );
 extern void L_queue_clock_start( void );
@@ -42,3 +43,4 @@ extern void L_queue_tempo_change( float tempo );
 // Callback declarations
 extern float L_handle_ii_followRxTx( uint8_t cmd, int args, float* data );
 extern void L_handle_ii_followRx_cont( uint8_t cmd, int args, float* data );
+extern void L_handle_ii_leadRx_multi_cont( uint8_t address, uint8_t cmd, uint8_t arg, int count, float* data );

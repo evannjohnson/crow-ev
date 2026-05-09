@@ -35,7 +35,7 @@ void ii_leader_process( void ); // call from event loop
 ///////////////////////////
 // reception dequeue
 uint8_t* ii_processFollowRx( void );
-uint8_t* ii_processLeadRx( void );
 
 // decoded
 void ii_process_dequeue_decode( void );
+void ii_process_lead_rx_multi( uint8_t address, uint8_t cmd, uint8_t arg );

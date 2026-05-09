@@ -46,7 +46,7 @@
 
 ///////////////////////////
 // queue setup
-#define I2C_MAX_CMD_BYTES 10
+#define I2C_MAX_CMD_BYTES 16
 #define I2C_BUFFER_LEN    32
 
 

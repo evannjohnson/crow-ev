@@ -42,6 +42,13 @@ do return
     , args = { 'channel', s8 }
     , retval = { 'volts', s16V }
     }
+  -- multi-value getter: returns 8 s16V values in one transaction.
+  -- TODO: adjust cmd byte (0x98 below) to match TXi firmware's wire cmd.
+  -- pickle hook below has a corresponding exception for this cmd byte.
+  , { name = 'all'
+    , cmd  = 0x98 -- GETTER_BIT | 0x18; wire-level byte = 0x18 (after pickle)
+    , retval = { 'volts', s16V, 8 }
+    }
   }
 , commands =
     -- ti.param_map requires a call to txi.param_top and txi.param_bot
@@ -117,11 +124,16 @@ do return
 [[
 
 if (data[0] >= 128 ) {         // if it's a getter command
-  uint8_t chan = data[1] - 1;  // zero-index the channel
-  data[0] |= (chan & 0x3);     // mask channel
-  data[0] &= ~(1 << 7);        // remove GETTER_BIT
-  *byte_count = 1;             // packed into a single byte
-  *address += chan >> 2;       // ascending vals increment address
+  if (data[0] == 0x98) {       // multi-value get: no channel arg
+    data[0] &= ~(1 << 7);      // strip GETTER_BIT, send 0x18 on wire
+    *byte_count = 1;
+  } else {
+    uint8_t chan = data[1] - 1;  // zero-index the channel
+    data[0] |= (chan & 0x3);     // mask channel
+    data[0] &= ~(1 << 7);        // remove GETTER_BIT
+    *byte_count = 1;             // packed into a single byte
+    *address += chan >> 2;       // ascending vals increment address
+  }
 }
 
 ]]

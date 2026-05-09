@@ -57,6 +57,7 @@ void L_handle_metro( event_t* e );
 void L_handle_stream( event_t* e );
 void L_handle_change( event_t* e );
 void L_handle_ii_leadRx( event_t* e );;
+void L_handle_ii_leadRx_multi( event_t* e );
 void L_handle_ii_followRx( event_t* e );
 void L_handle_ii_followRx_cont( uint8_t cmd, int args, float* data );
 void L_handle_window( event_t* e );
@@ -1303,6 +1304,37 @@ void L_handle_ii_leadRx( event_t* e )
     lua_pushinteger(L, e->index.u8s[1]); // command
     lua_pushinteger(L, e->index.u8s[2]); // arg
     lua_pushnumber(L, e->data.f);
+    if( Lua_call_usercode(L, 4, 0) != LUA_OK ){
+        lua_pop( L, 1 );
+    }
+}
+
+void L_queue_ii_leadRx_multi( uint8_t address, uint8_t cmd, uint8_t arg )
+{
+    event_t e = { .handler = L_handle_ii_leadRx_multi };
+    e.index.u8s[0] = address;
+    e.index.u8s[1] = cmd;
+    e.index.u8s[2] = arg;
+    event_post(&e);
+}
+void L_handle_ii_leadRx_multi( event_t* e )
+{
+    ii_process_lead_rx_multi( e->index.u8s[0]
+                            , e->index.u8s[1]
+                            , e->index.u8s[2]
+                            );
+}
+void L_handle_ii_leadRx_multi_cont( uint8_t address, uint8_t cmd, uint8_t arg, int count, float* data )
+{
+    lua_getglobal(L, "ii_LeadRx_handler");
+    lua_pushinteger(L, address);
+    lua_pushinteger(L, cmd);
+    lua_pushinteger(L, arg);
+    lua_createtable(L, count, 0);
+    for( int i=0; i<count; i++ ){
+        lua_pushnumber(L, data[i]);
+        lua_rawseti(L, -2, i+1);
+    }
     if( Lua_call_usercode(L, 4, 0) != LUA_OK ){
         lua_pop( L, 1 );
     }
