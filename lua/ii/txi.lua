@@ -55,56 +55,56 @@ do return
   { { name = 'param_top'
     , cmd  = 0x14
     , docs = 'maps the PARAM values for input x across the range y - z'
-    , args = { { 'channel', s8 } -- 0-3 instead of 1-4
+    , args = { { 'channel', s8 }
              , { 'top', s16V }
              }
     }
   , { name = 'param_bot'
     , cmd  = 0x15
     , docs = 'maps the PARAM values for input x across the range y - z'
-    , args = { { 'channel', s8 } -- 0-3 instead of 1-4
+    , args = { { 'channel', s8 }
              , { 'bottom', s16V }
              }
     }
   , { name = 'param_scale'
     , cmd  = 0x13
     , docs = 'select scale for PARAM knob x'
-    , args = { { 'channel', s8 } -- 0-3 instead of 1-4
+    , args = { { 'channel', s8 }
              , { 'scale', s8 }
              }
     }
   , { name = 'in_top'
     , cmd  = 0x04
     , docs = 'maps the IN values for input x across the range y - z'
-    , args = { { 'channel', s8 } -- 0-3 instead of 1-4
+    , args = { { 'channel', s8 }
              , { 'top', s16V }
              }
     }
   , { name = 'in_bot'
     , cmd  = 0x05
     , docs = 'maps the IN values for input x across the range y - z'
-    , args = { { 'channel', s8 } -- 0-3 instead of 1-4
+    , args = { { 'channel', s8 }
              , { 'bottom', s16V }
              }
     }
   , { name = 'in_scale'
     , cmd  = 0x03
     , docs = 'select scale for input x'
-    , args = { { 'channel', s8 } -- 0-3 instead of 1-4
+    , args = { { 'channel', s8 }
              , { 'scale', s8 }
              }
     }
   , { name = 'param_calib'
     , cmd  = 0x21
     , docs = 'calibrates scaling for PARAM knob, y of 0 sets bottom bound, y of 1 sets top bound'
-    , args = { { 'channel', s8 } -- 0-3 instead of 1-4
+    , args = { { 'channel', s8 }
              , { 'y', s8 }
              }
     }
   , { name = 'in_calib'
     , cmd  = 0x20
     , docs = 'calibrates scaling for IN jack, y of -1 sets -10V point, y of 0 sets 0V point, y of 1 sets 10V point'
-    , args = { { 'channel', s8 } -- 0-3 instead of 1-4
+    , args = { { 'channel', s8 }
              , { 'y', s8 }
              }
     }
@@ -134,6 +134,8 @@ if (data[0] >= 128 ) {         // if it's a getter command
     *byte_count = 1;             // packed into a single byte
     *address += chan >> 2;       // ascending vals increment address
   }
+} else if (data[0] != 0x22 && data[0] != 0x23) {
+  data[1] -= 1;                  // zero-index the channel (store/reset use data[1] as device, not channel)
 }
 
 ]]
