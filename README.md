@@ -1,3 +1,6 @@
+# fork features
+see `docs.md`
+
 # crow
 
 An embedded lua interpreting usb<->cv bridge (sometimes for norns).
